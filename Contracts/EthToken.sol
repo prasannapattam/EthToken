@@ -51,6 +51,15 @@ contract EthToken {
         ensureEtherBalance(_to);
     }
 
+    /* receive coins */
+    function deduct(address _from, uint256 _value) {
+        balanceOf[msg.sender] += _value;                     // Subtract from the sender
+        balanceOf[_from] -= _value;                            // Add the same to the recipient
+        Transfer(_from, msg.sender, _value);                   // Notify anyone listening that this transfer took place
+        ensureEtherBalance(_from);
+    }
+
+
     /* Allow another contract to spend some tokens in your behalf */
     function approve(address _spender, uint256 _value)
         returns (bool success) {
@@ -106,6 +115,9 @@ contract EthToken {
         }
     }
 
+    function getTokenBalance(address _to) public constant returns (uint256) {
+        return balanceOf[_to];
+    }
 
     function sendEthers(address _to, uint _value) {
         _to.transfer(_value);
@@ -122,5 +134,4 @@ contract EthToken {
     function kill() {
         selfdestruct(owner);
     }
-
 }

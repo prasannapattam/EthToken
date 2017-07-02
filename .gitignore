@@ -263,5 +263,5 @@ __pycache__/
 /Contracts/.vscode
 /TestChain/DevChain/history
 *.exe
-/TestChain/rinky
-/TestChain/testnet/geth
+/TestChain/rinkeby
+/TestChain/testnet
