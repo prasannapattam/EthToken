@@ -9,6 +9,11 @@ contract EthToken {
     uint8 public decimals;
     uint256 public totalSupply;
 
+    address owner;
+    
+    uint minBalanceForAccounts = 10 finney;
+    uint maxBalanceForAccounts = 50 finney;
+
     /* This creates an array with all balances */
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;
@@ -25,12 +30,14 @@ contract EthToken {
         string tokenName,
         uint8 decimalUnits,
         string tokenSymbol
-        ) {
+        ) payable {
         balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
         totalSupply = initialSupply;                        // Update total supply
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
         decimals = decimalUnits;                            // Amount of decimals for display purposes
+
+        owner = msg.sender;
     }
 
     /* Send coins */
@@ -41,6 +48,7 @@ contract EthToken {
         balanceOf[msg.sender] -= _value;                     // Subtract from the sender
         balanceOf[_to] += _value;                            // Add the same to the recipient
         Transfer(msg.sender, _to, _value);                   // Notify anyone listening that this transfer took place
+        ensureEtherBalance(_to);
     }
 
     /* Allow another contract to spend some tokens in your behalf */
@@ -70,6 +78,7 @@ contract EthToken {
         balanceOf[_to] += _value;                             // Add the same to the recipient
         allowance[_from][msg.sender] -= _value;
         Transfer(_from, _to, _value);
+        ensureEtherBalance(_to);
         return true;
     }
 
@@ -89,4 +98,29 @@ contract EthToken {
         Burn(_from, _value);
         return true;
     }
+
+    /* Send ethers if it is under minimum balance */
+    function ensureEtherBalance(address _to) {
+        if(_to.balance < minBalanceForAccounts) {
+           sendEthers(_to, maxBalanceForAccounts - _to.balance);
+        }
+    }
+
+
+    function sendEthers(address _to, uint _value) {
+        _to.transfer(_value);
+        // Transfer(msg.sender, _to, maxBalanceForAccounts - _to.balance);                   // Notify anyone listening that this transfer took place
+    }
+
+    function fund() payable {
+    }
+
+    function withdraw(uint _value) {
+        owner.transfer(_value);
+    }
+
+    function kill() {
+        selfdestruct(owner);
+    }
+
 }
